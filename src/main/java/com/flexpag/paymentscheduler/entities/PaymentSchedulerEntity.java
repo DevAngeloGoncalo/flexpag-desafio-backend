@@ -15,7 +15,7 @@ public class PaymentSchedulerEntity {
     @Column(name = "id_cliente")
     private Long idCliente;
 
-    @Column(name = "id_cconta")
+    @Column(name = "id_conta")
     private Long idConta;
 
     @Column(name = "valor")

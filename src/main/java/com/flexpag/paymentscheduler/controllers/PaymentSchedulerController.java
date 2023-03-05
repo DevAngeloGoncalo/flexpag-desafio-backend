@@ -1,4 +1,4 @@
-package com.flexpag.controllers;
+package com.flexpag.paymentscheduler.controllers;
 
 public class PaymentSchedulerController {
     

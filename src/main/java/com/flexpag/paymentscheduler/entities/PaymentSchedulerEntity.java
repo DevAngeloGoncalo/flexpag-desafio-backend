@@ -84,4 +84,12 @@ public class PaymentSchedulerEntity {
     public void setDescricao(String descricao) {
         this.descricao = descricao;
     }
+
+    public LocalDateTime getDataDoPagamento() {
+        return DataDoPagamento;
+    }
+
+    public void setDataDoPagamento(LocalDateTime dataDoPagamento) {
+        DataDoPagamento = dataDoPagamento;
+    }
 }

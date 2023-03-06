@@ -19,6 +19,12 @@ public class PaymentSchedulerController {
     @Autowired
     private PaymentSchedulerRepository paymentSchedulerRepository;
 
+    @GetMapping("/listar")
+    public ResponseEntity<List<PaymentSchedulerEntity>> listarAgendamentos() {
+        List<PaymentSchedulerEntity> agendamentos = paymentSchedulerRepository.findAll();
+        return ResponseEntity.ok(agendamentos);
+    }
+
     @GetMapping("/listarPorId/{id}")
     public ResponseEntity<PaymentSchedulerEntity> listarAgendamentosPorId(@PathVariable Long id) {
         Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
@@ -64,7 +70,7 @@ public class PaymentSchedulerController {
         Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
         if (agendamento.isPresent()) {
             PaymentSchedulerEntity agendamentoExistente = agendamento.get();
-            agendamentoExistente.setDataAgendamentoDoPagamento(agendamentoAtualizado.getDataAgendamentoDoPagamento());
+            agendamentoExistente.setDataDoPagamento(agendamentoAtualizado.getDataDoPagamento());
             PaymentSchedulerEntity agendamentoSalvo = paymentSchedulerRepository.save(agendamentoExistente);
             return ResponseEntity.ok(agendamentoSalvo);
         } else {

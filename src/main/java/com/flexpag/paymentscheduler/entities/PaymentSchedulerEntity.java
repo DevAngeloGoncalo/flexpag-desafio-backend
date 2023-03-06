@@ -21,10 +21,10 @@ public class PaymentSchedulerEntity {
     @Column(name = "valor")
     private BigDecimal valor;
 
-    @Column(name = "data_hora_pagamento")
+    @Column(name = "data_hora_agendamento")
     private LocalDateTime DataAgendamentoDoPagamento;
 
-    @Column(name = "data_hora_agendamento")
+    @Column(name = "data_hora_pagamento")
     private LocalDateTime DataDoPagamento;
 
     @Enumerated(EnumType.STRING)
@@ -91,5 +91,13 @@ public class PaymentSchedulerEntity {
 
     public void setDataDoPagamento(LocalDateTime dataDoPagamento) {
         DataDoPagamento = dataDoPagamento;
+    }
+
+    public BigDecimal getValor() {
+        return valor;
+    }
+    
+    public void setValor(BigDecimal valor) {
+        this.valor = valor;
     }
 }

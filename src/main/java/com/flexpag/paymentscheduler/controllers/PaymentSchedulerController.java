@@ -40,6 +40,7 @@ public class PaymentSchedulerController {
     @PostMapping("/agendar")
     public ResponseEntity<PaymentSchedulerEntity> agendarPagamento(@RequestBody PaymentSchedulerEntity agendamento) {
         agendamento.setDataAgendamentoDoPagamento(LocalDateTime.now());
+        agendamento.setStatusPagamento(EnumPaymentStatus.Pending);
         PaymentSchedulerEntity agendamentoSalvo = paymentSchedulerRepository.save(agendamento);
         return ResponseEntity.status(HttpStatus.CREATED).body(agendamentoSalvo);
     }

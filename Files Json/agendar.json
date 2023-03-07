@@ -1,0 +1,10 @@
+{
+    "idCliente": 123,
+    "idConta": 456,
+    "valor": 100,
+    "dataDoPagamento": "2023-03-02T10:00:00",
+    "statusPagamento": "Pending",
+    "formaPagamento": "Cartão de crédito",
+    "descricao": "Pagamento de fatura"
+  }
+  

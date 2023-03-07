@@ -53,7 +53,6 @@ public class PaymentSchedulerController {
             PaymentSchedulerEntity agendamentoSalvo = paymentSchedulerRepository.save(agendamento);
             return ResponseEntity.status(HttpStatus.CREATED).body("Seu ID de Agendamento é: " + agendamentoSalvo.getId());   
         } catch (Exception e) {
-            // TODO: handle exception
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao salvar agendamento: " + e.getMessage());
         }
     }

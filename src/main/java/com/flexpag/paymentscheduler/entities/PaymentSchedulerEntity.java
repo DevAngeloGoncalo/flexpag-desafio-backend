@@ -100,4 +100,8 @@ public class PaymentSchedulerEntity {
     public void setValor(BigDecimal valor) {
         this.valor = valor;
     }
+
+    public Long getId() {
+        return id;
+    }
 }

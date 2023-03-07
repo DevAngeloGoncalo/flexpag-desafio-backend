@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -25,7 +26,7 @@ public class PaymentSchedulerController {
         return ResponseEntity.ok(agendamentos);
     }
 
-    @GetMapping("/listarPorId/{id}")
+    @GetMapping("/consultarPorIdAgendamento/{id}")
     public ResponseEntity<PaymentSchedulerEntity> listarAgendamentosPorId(@PathVariable Long id) {
         Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
         return agendamento.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -44,41 +45,73 @@ public class PaymentSchedulerController {
     }
 
     @PostMapping("/agendar")
-    public ResponseEntity<PaymentSchedulerEntity> agendarPagamento(@RequestBody PaymentSchedulerEntity agendamento) {
+    public ResponseEntity<String> agendarPagamento(@RequestBody PaymentSchedulerEntity agendamento) {
         agendamento.setDataAgendamentoDoPagamento(LocalDateTime.now());
         agendamento.setStatusPagamento(EnumPaymentStatus.Pending);
+        agendamento.setFormaPagamento(null);
         PaymentSchedulerEntity agendamentoSalvo = paymentSchedulerRepository.save(agendamento);
-        return ResponseEntity.status(HttpStatus.CREATED).body(agendamentoSalvo);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Seu ID de Agendamento é: " + agendamentoSalvo.getId());
     }
 
     @PutMapping("/pagar/{id}")
-    public ResponseEntity<PaymentSchedulerEntity> pagarAgendamento(@PathVariable Long id) {
+    public ResponseEntity<String> pagarAgendamento(@PathVariable Long id, @RequestBody Map<String, String> request) {
+
         Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
+        
         if (agendamento.isPresent()) {
+
             PaymentSchedulerEntity agendamentoAtualizado = agendamento.get();
-            agendamentoAtualizado.setDataAgendamentoDoPagamento(LocalDateTime.now());
+
+            if (agendamentoAtualizado.getStatusPagamento() == EnumPaymentStatus.Paid){
+
+                return ResponseEntity.badRequest().body(
+                    "Pagamento já realizado!\nId de Agendamento: " + agendamentoAtualizado.getId() + 
+                    "\nData do Pagamento: " + agendamentoAtualizado.getDataDoPagamento() +
+                    "\nStatus: " + agendamentoAtualizado.getStatusPagamento() +
+                    "\nValor: " + agendamentoAtualizado.getValor() + 
+                    "\nForma de Pagamento: " + agendamentoAtualizado.getFormaPagamento());
+                
+            }
+
+            agendamentoAtualizado.setFormaPagamento(request.get("formaPagamento"));
+            agendamentoAtualizado.setDataDoPagamento(LocalDateTime.now());
             agendamentoAtualizado.setStatusPagamento(EnumPaymentStatus.Paid);
-            PaymentSchedulerEntity agendamentoSalvo = paymentSchedulerRepository.save(agendamentoAtualizado);
-            return ResponseEntity.ok(agendamentoSalvo);
+            paymentSchedulerRepository.save(agendamentoAtualizado);
+            return ResponseEntity.ok("Pagamento Finalizado");
+
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PutMapping("/atualizarDataHoraAgendamento/{id}")
-    public ResponseEntity<PaymentSchedulerEntity> atualizarDataHoraAgendamento(@PathVariable Long id, @RequestBody PaymentSchedulerEntity agendamentoAtualizado) {
+    public ResponseEntity<String> atualizarDataHoraAgendamento(@PathVariable Long id, @RequestBody PaymentSchedulerEntity agendamentoAtualizado) {
         Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
         if (agendamento.isPresent()) {
+
             PaymentSchedulerEntity agendamentoExistente = agendamento.get();
+
+            if (agendamentoExistente.getStatusPagamento() == EnumPaymentStatus.Paid){
+
+                return ResponseEntity.badRequest().body(
+                    "Pagamento já realizado!\nVocê não pode modificar a data do Pagamento" +
+                    "\nId de Agendamento: " + agendamentoExistente.getId() + 
+                    "\nData do Pagamento: " + agendamentoExistente.getDataDoPagamento() +
+                    "\nStatus: " + agendamentoExistente.getStatusPagamento() +
+                    "\nValor: " + agendamentoExistente.getValor() + 
+                    "\nForma de Pagamento: " + agendamentoExistente.getFormaPagamento());
+            }
+            
+            agendamentoExistente.setDataAgendamentoDoPagamento(LocalDateTime.now());
             agendamentoExistente.setDataDoPagamento(agendamentoAtualizado.getDataDoPagamento());
-            PaymentSchedulerEntity agendamentoSalvo = paymentSchedulerRepository.save(agendamentoExistente);
-            return ResponseEntity.ok(agendamentoSalvo);
+            paymentSchedulerRepository.save(agendamentoExistente);
+            return ResponseEntity.ok("Data alterada para: " + agendamentoExistente.getDataDoPagamento());
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/Delete/{id}")
     public ResponseEntity<String> excluirAgendamento(@PathVariable("id") Long id) {
         Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
         if (agendamento.isPresent()) {

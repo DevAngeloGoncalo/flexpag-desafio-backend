@@ -46,68 +46,84 @@ public class PaymentSchedulerController {
 
     @PostMapping("/agendar")
     public ResponseEntity<String> agendarPagamento(@RequestBody PaymentSchedulerEntity agendamento) {
-        agendamento.setDataAgendamentoDoPagamento(LocalDateTime.now());
-        agendamento.setStatusPagamento(EnumPaymentStatus.Pending);
-        agendamento.setFormaPagamento(null);
-        PaymentSchedulerEntity agendamentoSalvo = paymentSchedulerRepository.save(agendamento);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Seu ID de Agendamento é: " + agendamentoSalvo.getId());
+        try {
+            agendamento.setDataAgendamentoDoPagamento(LocalDateTime.now());
+            agendamento.setStatusPagamento(EnumPaymentStatus.Pending);
+            agendamento.setFormaPagamento(null);
+            PaymentSchedulerEntity agendamentoSalvo = paymentSchedulerRepository.save(agendamento);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Seu ID de Agendamento é: " + agendamentoSalvo.getId());   
+        } catch (Exception e) {
+            // TODO: handle exception
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao salvar agendamento: " + e.getMessage());
+        }
     }
 
     @PutMapping("/pagar/{id}")
     public ResponseEntity<String> pagarAgendamento(@PathVariable Long id, @RequestBody Map<String, String> request) {
-
-        Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
         
-        if (agendamento.isPresent()) {
+        try
+        {
+            Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
+            
+            if (agendamento.isPresent()) {
 
-            PaymentSchedulerEntity agendamentoAtualizado = agendamento.get();
+                PaymentSchedulerEntity agendamentoAtualizado = agendamento.get();
 
-            if (agendamentoAtualizado.getStatusPagamento() == EnumPaymentStatus.Paid){
+                if (agendamentoAtualizado.getStatusPagamento() == EnumPaymentStatus.Paid){
 
-                return ResponseEntity.badRequest().body(
-                    "Pagamento já realizado!\nId de Agendamento: " + agendamentoAtualizado.getId() + 
-                    "\nData do Pagamento: " + agendamentoAtualizado.getDataDoPagamento() +
-                    "\nStatus: " + agendamentoAtualizado.getStatusPagamento() +
-                    "\nValor: " + agendamentoAtualizado.getValor() + 
-                    "\nForma de Pagamento: " + agendamentoAtualizado.getFormaPagamento());
-                
+                    return ResponseEntity.badRequest().body(
+                        "Pagamento já realizado!\nId de Agendamento: " + agendamentoAtualizado.getId() + 
+                        "\nData do Pagamento: " + agendamentoAtualizado.getDataDoPagamento() +
+                        "\nStatus: " + agendamentoAtualizado.getStatusPagamento() +
+                        "\nValor: " + agendamentoAtualizado.getValor() + 
+                        "\nForma de Pagamento: " + agendamentoAtualizado.getFormaPagamento());
+                    
+                }
+
+                agendamentoAtualizado.setFormaPagamento(request.get("formaPagamento"));
+                agendamentoAtualizado.setDataDoPagamento(LocalDateTime.now());
+                agendamentoAtualizado.setStatusPagamento(EnumPaymentStatus.Paid);
+                paymentSchedulerRepository.save(agendamentoAtualizado);
+                return ResponseEntity.ok("Pagamento Finalizado");
+
+            } else {
+                return ResponseEntity.notFound().build();
             }
-
-            agendamentoAtualizado.setFormaPagamento(request.get("formaPagamento"));
-            agendamentoAtualizado.setDataDoPagamento(LocalDateTime.now());
-            agendamentoAtualizado.setStatusPagamento(EnumPaymentStatus.Paid);
-            paymentSchedulerRepository.save(agendamentoAtualizado);
-            return ResponseEntity.ok("Pagamento Finalizado");
-
-        } else {
-            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocorreu um erro ao processar a solicitação");
         }
     }
 
     @PutMapping("/atualizarDataHoraAgendamento/{id}")
     public ResponseEntity<String> atualizarDataHoraAgendamento(@PathVariable Long id, @RequestBody PaymentSchedulerEntity agendamentoAtualizado) {
-        Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
-        if (agendamento.isPresent()) {
+        
+        try {
+        
+            Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
+            if (agendamento.isPresent()) {
 
-            PaymentSchedulerEntity agendamentoExistente = agendamento.get();
+                PaymentSchedulerEntity agendamentoExistente = agendamento.get();
 
-            if (agendamentoExistente.getStatusPagamento() == EnumPaymentStatus.Paid){
+                if (agendamentoExistente.getStatusPagamento() == EnumPaymentStatus.Paid){
 
-                return ResponseEntity.badRequest().body(
-                    "Pagamento já realizado!\nVocê não pode modificar a data do Pagamento" +
-                    "\nId de Agendamento: " + agendamentoExistente.getId() + 
-                    "\nData do Pagamento: " + agendamentoExistente.getDataDoPagamento() +
-                    "\nStatus: " + agendamentoExistente.getStatusPagamento() +
-                    "\nValor: " + agendamentoExistente.getValor() + 
-                    "\nForma de Pagamento: " + agendamentoExistente.getFormaPagamento());
+                    return ResponseEntity.badRequest().body(
+                        "Pagamento já realizado!\nVocê não pode modificar a data do Pagamento" +
+                        "\nId de Agendamento: " + agendamentoExistente.getId() + 
+                        "\nData do Pagamento: " + agendamentoExistente.getDataDoPagamento() +
+                        "\nStatus: " + agendamentoExistente.getStatusPagamento() +
+                        "\nValor: " + agendamentoExistente.getValor() + 
+                        "\nForma de Pagamento: " + agendamentoExistente.getFormaPagamento());
+                }
+                
+                agendamentoExistente.setDataAgendamentoDoPagamento(LocalDateTime.now());
+                agendamentoExistente.setDataDoPagamento(agendamentoAtualizado.getDataDoPagamento());
+                paymentSchedulerRepository.save(agendamentoExistente);
+                return ResponseEntity.ok("Data alterada para: " + agendamentoExistente.getDataDoPagamento());
+            } else {
+                return ResponseEntity.notFound().build();
             }
-            
-            agendamentoExistente.setDataAgendamentoDoPagamento(LocalDateTime.now());
-            agendamentoExistente.setDataDoPagamento(agendamentoAtualizado.getDataDoPagamento());
-            paymentSchedulerRepository.save(agendamentoExistente);
-            return ResponseEntity.ok("Data alterada para: " + agendamentoExistente.getDataDoPagamento());
-        } else {
-            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocorreu um erro ao processar a solicitação");
         }
     }
 
@@ -115,6 +131,12 @@ public class PaymentSchedulerController {
     public ResponseEntity<String> excluirAgendamento(@PathVariable("id") Long id) {
         Optional<PaymentSchedulerEntity> agendamento = paymentSchedulerRepository.findById(id);
         if (agendamento.isPresent()) {
+
+            PaymentSchedulerEntity agendamentoAtualizado = agendamento.get();
+            if (agendamentoAtualizado.getStatusPagamento() == EnumPaymentStatus.Paid){
+                return ResponseEntity.badRequest().body("Não é possível excluir um agendamento com pagamento realizado!");
+            }
+
             paymentSchedulerRepository.delete(agendamento.get());
             return ResponseEntity.ok("Agendamento excluído com sucesso!");
         } else {
